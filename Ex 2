@@ -1,0 +1,63 @@
+import csv
+def load_data(filename):
+    with open(filename, 'r') as file:
+        reader = csv.reader(file)
+        data = list(reader)
+        header = data[0]
+        examples = data[1:]
+    return header, examples
+def more_general(h1, h2):
+    more_general_parts = []
+    for x, y in zip(h1, h2):
+        mg = x == '?' or (x != 'ϕ' and (x == y))
+        more_general_parts.append(mg)
+    return all(more_general_parts)
+def generalize_S(example, S):
+    for i in range(len(S)):
+        if S[i] == 'ϕ':
+            S[i] = example[i]
+        elif S[i] != example[i]:
+            S[i] = '?'
+    return S
+def specialize_G(hypothesis, domains, example):
+    specializations = []
+    for i in range(len(hypothesis)):
+        if hypothesis[i] == '?':
+            for val in domains[i]:
+                if val != example[i]:
+                    new_hypothesis = hypothesis.copy()
+                    new_hypothesis[i] = val
+                    specializations.append(new_hypothesis)
+        elif hypothesis[i] != example[i]:
+            continue
+        else:
+            new_hypothesis = hypothesis.copy()
+            new_hypothesis[i] = '?'
+            specializations.append(new_hypothesis)
+    return specializations
+def candidate_elimination(filename):
+    header, data = load_data(filename)
+    attributes = header[:-1]
+    domains = {}
+    for col in range(len(attributes)):
+        domains[col] = list(set(row[col] for row in data))
+    S = ['ϕ'] * len(attributes)
+    G = [['?'] * len(attributes)]
+    for row in data:
+        example, label = row[:-1], row[-1]
+        if label == 'Yes':
+            G = [g for g in G if all(g[i] == '?' or g[i] == example[i] for i in range(len(g)))]
+            S = generalize_S(example, S)
+            G = [g for g in G if more_general(g, S)]
+        elif label == 'No':
+            G_temp = []
+            for g in G:
+                if all(g[i] == '?' or g[i] == example[i] for i in range(len(g))):
+                    G_temp += specialize_G(g, domains, example)
+            G = [g for g in G_temp if more_general(g, S)]
+    print("Final Specific Hypothesis S:")
+    print(S)
+    print("Final General Hypotheses G:")
+    for g in G:
+        print(g)
+candidate_elimination('training_data.csv')
