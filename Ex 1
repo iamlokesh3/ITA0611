@@ -1,0 +1,20 @@
+def find_s_algorithm():
+    training_data = [
+        (['Sunny', 'Warm', 'Normal', 'Strong'], 'Yes'),
+        (['Sunny', 'Warm', 'High', 'Strong'], 'Yes'),
+        (['Sunny', 'Warm', 'High', 'Weak'], 'Yes'),
+        (['Rainy', 'Cold', 'High', 'Strong'], 'No'),
+        (['Sunny', 'Warm', 'Normal', 'Weak'], 'Yes'),
+    ]
+    num_features = len(training_data[0][0])
+    hypothesis = ['ϕ'] * num_features 
+    for features, label in training_data:
+        if label == 'Yes':
+            if hypothesis == ['ϕ'] * num_features:
+                hypothesis = features.copy()
+            else:
+                for i in range(num_features):
+                    if hypothesis[i] != features[i]:
+                        hypothesis[i] = '?' 
+    print("Final hypothesis:", hypothesis)
+find_s_algorithm()
